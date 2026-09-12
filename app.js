@@ -801,6 +801,110 @@ class ThaiAlphabetApp {
         document.exitFullscreen();
       }
     });
+
+    // Initialize BGM Controls
+    this.initBGMControls();
+  }
+
+  // === ระบบควบคุมเพลงพื้นหลัง (Funny BG Background Music Controls) ===
+  initBGMControls() {
+    const bgmNavBtn = document.getElementById('bgmNavBtn');
+    const bgmNavText = document.getElementById('bgmNavText');
+    const bgmToggle = document.getElementById('bgmToggle');
+    const bgmSlider = document.getElementById('bgmVolumeSlider');
+    const bgmVolumeValue = document.getElementById('bgmVolumeValue');
+    const bgmSliderControls = document.getElementById('bgmSliderControls');
+    const presetChips = document.querySelectorAll('.preset-chip');
+
+    const updateUI = (bgm) => {
+      const percent = bgm.getVolumePercent();
+      const isMuted = !bgm.isEnabled || percent === 0;
+
+      // ปรับปรุงปุ่มบนแถบเมนูด้านบน (Top Navbar)
+      if (bgmNavBtn) {
+        if (isMuted) {
+          bgmNavBtn.classList.remove('bgm-playing', 'active-bgm');
+          bgmNavBtn.classList.add('bgm-muted');
+          if (bgmNavText) bgmNavText.innerText = 'เพลง: ปิด';
+        } else {
+          bgmNavBtn.classList.remove('bgm-muted');
+          bgmNavBtn.classList.add('active-bgm');
+          if (bgm.isPlaying) {
+            bgmNavBtn.classList.add('bgm-playing');
+          } else {
+            bgmNavBtn.classList.remove('bgm-playing');
+          }
+          if (bgmNavText) bgmNavText.innerText = `เพลง: ${percent}%`;
+        }
+      }
+
+      // ปรับปรุงปุ่มและแถบเลื่อนในหน้าต่างตั้งค่า (Settings Modal)
+      if (bgmToggle) {
+        bgmToggle.checked = bgm.isEnabled && percent > 0;
+      }
+
+      if (bgmSlider) {
+        bgmSlider.value = percent;
+        bgmSlider.style.setProperty('--bgm-progress', `${percent}%`);
+      }
+
+      if (bgmVolumeValue) {
+        bgmVolumeValue.innerText = `${percent}%`;
+      }
+
+      if (bgmSliderControls) {
+        bgmSliderControls.classList.toggle('disabled', !bgm.isEnabled);
+      }
+
+      // อัปเดตชิปทางลัดระดับเสียง (Preset Chips)
+      presetChips.forEach(chip => {
+        const val = parseInt(chip.dataset.volume);
+        chip.classList.toggle('active-preset', val === percent && bgm.isEnabled && percent > 0);
+      });
+    };
+
+    if (typeof BGM !== 'undefined') {
+      BGM.subscribe(updateUI);
+      updateUI(BGM);
+
+      // ปุ่มเปิด/ปิด บน Navbar
+      if (bgmNavBtn) {
+        bgmNavBtn.addEventListener('click', () => {
+          SoundFX.playPop(550);
+          BGM.toggle();
+        });
+      }
+
+      // สวิตช์เปิด/ปิด ใน Settings
+      if (bgmToggle) {
+        bgmToggle.addEventListener('change', (e) => {
+          SoundFX.playPop(520);
+          BGM.setEnabled(e.target.checked);
+        });
+      }
+
+      // แถบสไลเดอร์ปรับระดับความดัง (0% - 100%)
+      if (bgmSlider) {
+        bgmSlider.addEventListener('input', (e) => {
+          const val = parseInt(e.target.value);
+          BGM.setVolume(val / 100);
+        });
+      }
+
+      // ปุ่มเลือกระดับความดังด่วน
+      presetChips.forEach(chip => {
+        chip.addEventListener('click', () => {
+          SoundFX.playPop(580);
+          const val = parseInt(chip.dataset.volume);
+          if (val === 0) {
+            BGM.setVolume(0);
+          } else {
+            BGM.setVolume(val / 100);
+            if (!BGM.isEnabled) BGM.setEnabled(true);
+          }
+        });
+      });
+    }
   }
 }
 
@@ -814,6 +918,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const unlockAudio = () => {
     SoundFX.init();
+    if (typeof BGM !== 'undefined' && BGM.unlock) {
+      BGM.unlock();
+    }
     if (SpeechEngine.warmup) {
       SpeechEngine.warmup();
     }
