@@ -172,3 +172,173 @@ class SoundSynthesizer {
 }
 
 const SoundFX = new SoundSynthesizer();
+
+/**
+ * Background Music (BGM) Manager
+ * เล่นไฟล์ Funny BG เป็นเพลงพื้นหลัง กำหนดความดังเริ่มต้น 10% (0.10) และปรับระดับได้
+ */
+class BackgroundMusicManager {
+  constructor(src = 'assets/Funny BG.mp3') {
+    this.src = src;
+    this.audio = null;
+    this.defaultVolume = 0.10; // ระดับความดังเริ่มต้น 10% ตามที่กำหนด
+    this.volume = this.defaultVolume;
+    this.isEnabled = true;
+    this.isPlaying = false;
+    this.hasUserInteracted = false;
+    this.listeners = [];
+
+    // โหลดการตั้งค่าจาก localStorage (ถ้ามี)
+    try {
+      const savedVol = localStorage.getItem('bgm_volume');
+      if (savedVol !== null) {
+        const parsed = parseFloat(savedVol);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+          this.volume = parsed;
+        }
+      }
+      const savedEnabled = localStorage.getItem('bgm_enabled');
+      if (savedEnabled !== null) {
+        this.isEnabled = (savedEnabled === 'true');
+      }
+    } catch (e) {}
+
+    this.initAudio();
+  }
+
+  initAudio() {
+    if (!this.audio) {
+      try {
+        this.audio = new Audio();
+        this.audio.src = this.src;
+        this.audio.loop = true;
+        this.audio.volume = this.volume;
+        this.audio.preload = 'auto';
+
+        this.audio.addEventListener('play', () => {
+          this.isPlaying = true;
+          this.notifyListeners();
+        });
+        this.audio.addEventListener('pause', () => {
+          this.isPlaying = false;
+          this.notifyListeners();
+        });
+        this.audio.addEventListener('ended', () => {
+          this.isPlaying = false;
+          this.notifyListeners();
+        });
+      } catch (e) {
+        console.warn('BGM Init error:', e);
+      }
+    }
+  }
+
+  play() {
+    this.initAudio();
+    if (!this.audio) return;
+    if (!this.isEnabled) return;
+
+    this.audio.volume = this.volume;
+    const playPromise = this.audio.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          this.isPlaying = true;
+          this.notifyListeners();
+        })
+        .catch((err) => {
+          // รอการแตะสัมผัสหน้าจอจากผู้ใช้ตามนโยบาย Autoplay ของเบราว์เซอร์
+          this.isPlaying = false;
+          this.notifyListeners();
+        });
+    }
+  }
+
+  pause() {
+    if (this.audio) {
+      this.audio.pause();
+    }
+    this.isPlaying = false;
+    this.notifyListeners();
+  }
+
+  toggle() {
+    if (this.isPlaying) {
+      this.setEnabled(false);
+    } else {
+      this.setEnabled(true);
+      if (this.volume <= 0.01) {
+        this.setVolume(this.defaultVolume);
+      }
+      this.play();
+    }
+  }
+
+  setEnabled(enabled) {
+    this.isEnabled = enabled;
+    try {
+      localStorage.setItem('bgm_enabled', enabled ? 'true' : 'false');
+    } catch (e) {}
+
+    if (enabled) {
+      this.play();
+    } else {
+      this.pause();
+    }
+    this.notifyListeners();
+  }
+
+  setVolume(vol) {
+    vol = Math.max(0, Math.min(1, parseFloat(vol) || 0));
+    this.volume = vol;
+    if (this.audio) {
+      this.audio.volume = this.volume;
+    }
+    try {
+      localStorage.setItem('bgm_volume', this.volume.toString());
+    } catch (e) {}
+
+    if (this.volume <= 0.001) {
+      if (this.audio && !this.audio.paused) {
+        this.audio.pause();
+      }
+      this.isPlaying = false;
+    } else {
+      if (this.isEnabled) {
+        if (!this.isPlaying && this.hasUserInteracted) {
+          this.play();
+        }
+      }
+    }
+    this.notifyListeners();
+  }
+
+  getVolumePercent() {
+    return Math.round(this.volume * 100);
+  }
+
+  subscribe(listener) {
+    if (typeof listener === 'function') {
+      this.listeners.push(listener);
+    }
+  }
+
+  notifyListeners() {
+    this.listeners.forEach(fn => {
+      try { fn(this); } catch (e) {}
+    });
+  }
+
+  // ปลดล็อกเล่นเสียงเมื่อผู้ใช้แตะสัมผัสหน้าจอครั้งแรก
+  unlock() {
+    if (!this.hasUserInteracted) {
+      this.hasUserInteracted = true;
+      if (this.isEnabled && !this.isPlaying && this.volume > 0) {
+        this.play();
+      }
+    }
+  }
+}
+
+const BGM = new BackgroundMusicManager('assets/Funny BG.mp3');
+
