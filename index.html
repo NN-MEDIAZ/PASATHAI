@@ -63,6 +63,12 @@
           <span class="btn-text">ท่อง ก-ฮ</span>
         </button>
 
+        <!-- BGM Quick Toggle Button -->
+        <button id="bgmNavBtn" class="action-btn bgm-nav-btn active-bgm" title="เปิด/ปิด เพลงพื้นหลัง (Funny BG)">
+          <span class="btn-icon bgm-icon">🎶</span>
+          <span class="btn-text" id="bgmNavText">เพลง: 10%</span>
+        </button>
+
         <!-- Settings Button -->
         <button id="settingsBtn" class="action-btn" title="ตั้งค่าระบบเสียง ความเร็ว และธีมสีสดใส">
           <span class="btn-icon">⚙️</span>
@@ -229,6 +235,35 @@
         <label class="settings-label" style="margin: 0;">🔊 เอฟเฟกต์เสียงสัมผัส (Sound FX)</label>
         <input type="checkbox" id="soundFxToggle" checked
           style="width: 20px; height: 20px; cursor: pointer; accent-color: #6366f1;">
+      </div>
+
+      <!-- Background Music (Funny BG) Control -->
+      <div class="settings-row bgm-settings-box">
+        <div class="bgm-header-row">
+          <label class="settings-label" for="bgmToggle" style="margin: 0;">🎶 เพลงพื้นหลัง (Funny BG)</label>
+          <div class="toggle-switch-wrap">
+            <input type="checkbox" id="bgmToggle" checked class="custom-switch" title="เปิด/ปิด เพลงพื้นหลัง">
+          </div>
+        </div>
+
+        <div class="bgm-slider-row" id="bgmSliderControls">
+          <div class="bgm-volume-header">
+            <span class="bgm-volume-sublabel">ระดับความดังดนตรี:</span>
+            <span id="bgmVolumeValue" class="bgm-volume-badge">10%</span>
+          </div>
+          <div class="slider-track-wrap">
+            <span class="volume-min-icon">🔈</span>
+            <input type="range" id="bgmVolumeSlider" min="0" max="100" value="10" step="1" class="volume-range-slider" title="เลื่อนปรับระดับความดังเพลง">
+            <span class="volume-max-icon">🔊</span>
+          </div>
+          <div class="bgm-presets-wrap">
+            <button type="button" class="preset-chip" data-volume="0">ปิด (0%)</button>
+            <button type="button" class="preset-chip active-preset" data-volume="10">10% (แนะนำ)</button>
+            <button type="button" class="preset-chip" data-volume="25">25%</button>
+            <button type="button" class="preset-chip" data-volume="50">50%</button>
+            <button type="button" class="preset-chip" data-volume="100">100%</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
