@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>เกมเรียนรู้พยัญชนะไทย ๔๔ ตัว | Thai Alphabet Interactive Learning</title>
+  <meta name="description"
+    content="เกมและกระดานเรียนรู้พยัญชนะไทย ๔๔ ตัว (ก-ฮ) สีสันสดใส เสียงอ่านภาษาไทยแท้ แตะฟังเสียงพยัญชนะ บทกลอน และเกมทายพยัญชนะอัตโนมัติ">
+  <link rel="stylesheet" href="index.css">
+</head>
+
+<body class="theme-rainbow">
+
+  <!-- Ambient Floating Background Orbs (Vibrant & Cheerful) -->
+  <div class="ambient-background">
+    <div class="ambient-orb ambient-orb-1"></div>
+    <div class="ambient-orb ambient-orb-2"></div>
+    <div class="ambient-orb ambient-orb-3"></div>
+    <div class="ambient-orb ambient-orb-4"></div>
+    <div class="ambient-orb ambient-orb-5"></div>
+  </div>
+
+  <!-- Particle FX Canvas -->
+  <canvas id="fxCanvas"></canvas>
+
+  <!-- Quick Tap Toast Banner -->
+  <div id="quickToast" class="quick-toast-banner">
+    <span id="toastIcon">✨</span>
+    <span id="toastText">ก ไก่</span>
+  </div>
+
+  <!-- App Main Wrapper -->
+  <div class="app-container">
+
+    <!-- Top Navigation & Control Bar (Enlarged & Kid-Friendly) -->
+    <header class="top-navbar">
+      <div class="app-branding">
+        <span class="app-logo">🇹🇭</span>
+        <div class="app-title-wrap">
+          <h1 class="app-title">พยัญชนะไทย ๔๔ ตัว</h1>
+          <span class="app-subtitle">สีสันสดใส • แตะฟังเสียงพยัญชนะ • แตะค้างดูการ์ด 3D</span>
+        </div>
+      </div>
+
+      <!-- Main Navigation Buttons (Expanded Touch Target) -->
+      <div class="nav-controls">
+        <!-- Mode Switcher Tabs -->
+        <div class="mode-btn-group">
+          <button id="exploreModeBtn" class="mode-btn active" title="แตะพยัญชนะเพื่อฟังเสียงอย่างอิสระ">
+            <span class="btn-icon">👆</span>
+            <span class="btn-text">แตะเรียนรู้</span>
+          </button>
+          <button id="quizModeBtn" class="mode-btn" title="เกมตอบคำถามตามหาพยัญชนะ (เปลี่ยนข้ออัตโนมัติ)">
+            <span class="btn-icon">🎯</span>
+            <span class="btn-text">เกมทายพยัญชนะ</span>
+          </button>
+        </div>
+
+        <!-- Karaoke Auto-Play Button -->
+        <button id="karaokeBtn" class="action-btn" title="อ่านพยัญชนะ ก-ฮ ทีละตัวต่อเนื่อง">
+          <span class="btn-icon">🎵</span>
+          <span class="btn-text">ท่อง ก-ฮ</span>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="settingsBtn" class="action-btn" title="ตั้งค่าระบบเสียง ความเร็ว และธีมสีสดใส">
+          <span class="btn-icon">⚙️</span>
+          <span class="btn-text">ตั้งค่า</span>
+        </button>
+
+        <!-- Fullscreen Button -->
+        <button id="fullscreenBtn" class="action-btn" title="เปิดโหมดเต็มหน้าจอ">
+          <span class="btn-icon">🖥️</span>
+          <span class="btn-text">เต็มจอ</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Game HUD Bar (Displayed when in Quiz Mode) -->
+    <div id="gameHudBar" class="game-hud-bar">
+      <div class="game-question">
+        <span class="question-prefix">หาตัว:</span>
+        <span id="targetLetterName" class="question-target-name">ก ไก่</span>
+        <button id="repeatQuizVoiceBtn" class="repeat-voice-btn" title="ฟังเสียงอ่านพยัญชนะอีกครั้ง">
+          <span>🔊</span>
+          <span class="repeat-label">ฟังเสียง</span>
+        </button>
+      </div>
+      <div class="game-stats">
+        <div class="score-badge">
+          <span>⭐ คะแนน:</span>
+          <span id="quizScore">0</span>
+        </div>
+        <div id="quizStreak" class="streak-badge">🔥 0 ต่อเนื่อง</div>
+      </div>
+    </div>
+
+    <!-- Trigrams Filter Bar (อักษรสูง กลาง ต่ำเดี่ยว ต่ำคู่) -->
+    <div class="filter-bar">
+      <span class="filter-label">ไตรยางศ์:</span>
+      <button id="filter-all" class="filter-chip active-all" title="แสดงพยัญชนะทั้งหมด ๔๔ ตัว">
+        <span class="chip-icon">✨</span>
+        <span class="chip-text">ทั้งหมด (๔๔)</span>
+      </button>
+      <button id="filter-mid" class="filter-chip" title="อักษรกลางมี ๙ ตัว (ไก่ จิก เด็ก ตาย บน ปาก โอ่ง)">
+        <span class="chip-icon">🔷</span>
+        <span class="chip-text">อักษรกลาง (๙)</span>
+      </button>
+      <button id="filter-high" class="filter-chip" title="อักษรสูงมี ๑๑ ตัว (ผี ฝาก ถุง ข้าว สาร ให้ ฉัน)">
+        <span class="chip-icon">🟢</span>
+        <span class="chip-text">อักษรสูง (๑๑)</span>
+      </button>
+      <button id="filter-low-single" class="filter-chip" title="อักษรต่ำเดี่ยวมี ๑๐ ตัว (งู ใหญ่ นอน อยู่ ณ ริม วัด โม ฬี โลก)">
+        <span class="chip-icon">🟡</span>
+        <span class="chip-text">ต่ำเดี่ยว (๑๐)</span>
+      </button>
+      <button id="filter-low-pair" class="filter-chip" title="อักษรต่ำคู่มี ๑๔ ตัว (พ่อ ค้า ฟัน ทอง ซื้อ ช้าง ฮ่อ)">
+        <span class="chip-icon">🟠</span>
+        <span class="chip-text">ต่ำคู่ (๑๔)</span>
+      </button>
+    </div>
+
+    <!-- Main Poster Viewport - Fits Screen Perfectly -->
+    <main class="poster-viewport">
+      <div id="posterFrame" class="poster-frame">
+        <img src="Board.png" alt="พยัญชนะไทย ๔๔ ตัว" class="poster-image" id="mainPosterImg">
+
+        <!-- Interactive Touch Hotspot Layer -->
+        <div id="hotspotLayer" class="hotspot-layer"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 3D Pop-Up Modal Card (When Long-Pressed or Clicked) -->
+  <div id="modalBackdrop" class="modal-backdrop">
+    <div class="consonant-card-3d" id="consonantCard3d">
+      <button id="modalCloseBtn" class="card-close-btn" title="ปิด">✕</button>
+
+      <!-- Badges -->
+      <div class="card-header-badge">
+        <span id="modalClassBadge" class="card-class-badge" style="background-color: #2563eb;">อักษรกลาง</span>
+        <span id="modalSeqBadge" class="card-seq-badge">ลำดับที่ 1 / 44</span>
+      </div>
+
+      <!-- Character Card Image with Animation -->
+      <div id="modalCardImgWrap" class="card-image-wrapper" title="คลิกเพื่อฟังเสียงคำอ่าน">
+        <img id="modalCardImg" src="assets/cards/01.png" alt="พยัญชนะ" class="card-preview-img">
+        <div class="card-speaker-overlay">🔊</div>
+      </div>
+
+      <!-- Text Details -->
+      <h2 id="modalCardTitle" class="card-title-text">ก ไก่</h2>
+      <p id="modalCardPhonics" class="card-phonics-text">ออกเสียง "กอ" (Ko Kai)</p>
+
+      <!-- Multi-Voice Buttons Bar inside Card -->
+      <div class="card-voice-btn-group">
+        <button id="modalSpeakNameBtn" class="card-subvoice-btn" title="ฟังเสียงอ่านชื่อพยัญชนะ">
+          <span>🔊</span> <span>ชื่อพยัญชนะ</span>
+        </button>
+        <button id="modalSpeakPoemBtn" class="card-subvoice-btn" title="ฟังบทกลอนท่องจำ">
+          <span>🎵</span> <span>บทกลอน</span>
+        </button>
+      </div>
+
+      <!-- Poem Box -->
+      <div id="modalPoemBox" class="card-poem-box" title="คลิกเพื่อฟังบทกลอนท่องจำ">
+        <div class="poem-label">บทกลอนท่องจำ (แตะเพื่อฟัง) 🎵</div>
+        <div id="modalPoemText" class="poem-text">"กอ เอ๋ย กอ ไก่"</div>
+      </div>
+
+      <!-- Vocabulary Examples -->
+      <div class="vocab-section-title">ตัวอย่างคำศัพท์ (แตะเพื่อฟังเสียง):</div>
+      <div id="modalExampleWords" class="example-words-wrap"></div>
+
+      <!-- Card Bottom Navigation Bar -->
+      <div class="card-nav-bar">
+        <button id="prevCardBtn" class="card-nav-btn" title="ตัวก่อนหน้า">◀ ก่อนหน้า</button>
+        <button id="modalSpeakMainBtn" class="card-speak-main-btn" title="ฟังเสียงอ่านพยัญชนะ">
+          <span>🔊</span> <span>ฟังเสียงคำอ่าน</span>
+        </button>
+        <button id="nextCardBtn" class="card-nav-btn" title="ตัวถัดไป">ถัดไป ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (Sound & Bright Theme Configuration) -->
+  <div id="settingsBackdrop" class="modal-backdrop">
+    <div class="settings-panel">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="font-size: 1.15rem; font-weight: 700;">⚙️ ตั้งค่าระบบ</h3>
+        <button id="settingsCloseBtn" class="card-close-btn" style="position: static;">✕</button>
+      </div>
+
+      <!-- Bright Theme Selector -->
+      <div class="settings-row">
+        <label class="settings-label">🎨 ธีมสีพื้นหลังสดใส (Background Theme)</label>
+        <select id="themeSelect" class="settings-select">
+          <option value="theme-rainbow" selected>🌈 สายรุ้งสดใส (Rainbow Delight - ค่าเริ่มต้น)</option>
+          <option value="theme-sky">☀️ ท้องฟ้าแจ่มใส (Sky Sunshine)</option>
+          <option value="theme-candy">🍭 ขนมลูกกวาดพาสเทล (Pastel Candy)</option>
+          <option value="theme-spring">🌿 ป่าไม้สดชื่น (Spring Meadow)</option>
+          <option value="theme-night">🌌 ดวงดาวราตรี (Cosmic Starlight)</option>
+        </select>
+      </div>
+
+      <!-- Consonant Tap Mode -->
+      <div class="settings-row">
+        <label class="settings-label">👆 รูปแบบการแตะพยัญชนะ</label>
+        <select id="speechModeSelect" class="settings-select">
+          <option value="full" selected>แตะสั้น = อ่านชื่อตัว (ก ไก่), แตะค้าง = ดูการ์ด & กลอน</option>
+          <option value="poem">แตะสั้น = อ่านบทกลอนท่องจำ (กอ เอ๋ย กอ ไก่)</option>
+        </select>
+      </div>
+
+      <!-- Reading Speed -->
+      <div class="settings-row">
+        <label class="settings-label">⚡ ความเร็วเสียงอ่าน (Audio Playback Speed)</label>
+        <select id="speechSpeedSelect" class="settings-select">
+          <option value="0.85">ช้าลงเล็กน้อย (สำหรับฝึกออกเสียง)</option>
+          <option value="1.0" selected>ความเร็วปกติ (แนะนำ 100%)</option>
+          <option value="1.15">เร็วขึ้นเล็กน้อย</option>
+        </select>
+      </div>
+
+      <!-- Sound FX Toggle -->
+      <div class="settings-row"
+        style="flex-direction: row; justify-content: space-between; align-items: center; margin-top: 4px;">
+        <label class="settings-label" style="margin: 0;">🔊 เอฟเฟกต์เสียงสัมผัส (Sound FX)</label>
+        <input type="checkbox" id="soundFxToggle" checked
+          style="width: 20px; height: 20px; cursor: pointer; accent-color: #6366f1;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="thai_data.js"></script>
+  <script src="audio_synth.js"></script>
+  <script src="speech.js"></script>
+  <script src="app.js"></script>
+</body>
+
+</html>
